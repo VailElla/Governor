@@ -11,7 +11,7 @@
 <p align="center"><strong>v0.2.0 · SMAppService power helper · build 3</strong></p>
 
 > [!IMPORTANT]
-> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，仅用于免费打包与安装路径测试。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些测试资产**不能**注册 root Helper，也不得被描述为可用的“免重复认证”发行版。
+> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，可在逐个核验来源与 SHA-256 后手动安装。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些手动安装资产**不能**注册 root Helper，也不得被描述为可用的“免重复认证”发行版。
 
 ## 功能
 
@@ -86,7 +86,7 @@ Governor 是 Swift Package Manager 管理的 SwiftUI 菜单栏应用。运行统
 
 测试覆盖决策边界、15 秒 CPU 窗口、手动修改后的可选暂停、失败停止、模式与亮度恢复、并发切换保护、语言持久化、`SMAppService` 首次登记状态机，以及 root Helper 的全部 `pmset` 许可表。系统依赖在测试中由 test doubles 替代；测试没有让本机睡眠、重启、关机、注销或断网，也没有注册或启动真实 root Helper。发行脚本会验证 daemon 的受签名 bundle 布局、DMG/ZIP 解压与挂载、签名和 SHA-256。
 
-## 免费测试包（UNNOTARIZED）
+## 免费手动安装包（UNNOTARIZED）
 
 没有 Apple Developer Program 会员资格时，可生成明确标记为 `UNNOTARIZED` 的拖动安装 DMG 和备用 ZIP：
 
@@ -111,7 +111,7 @@ shasum -a 256 -c Governor-v0.2.0-UNNOTARIZED-macOS-arm64.dmg.sha256
 shasum -a 256 -c Governor-v0.2.0-UNNOTARIZED-macOS.zip.sha256
 ```
 
-SHA-256 只用于发现传输损坏或文件变化，不能证明发布者身份。`UNNOTARIZED` 测试包不得被描述为“已签名”“已公证”“Developer ID 可信”“受 Gatekeeper 信任”或“可登记特权 Helper”的正式发行版。
+SHA-256 只用于发现传输损坏或文件变化，不能证明发布者身份。`UNNOTARIZED` 手动安装包不得被描述为“已签名”“已公证”“Developer ID 可信”“受 Gatekeeper 信任”或“可登记特权 Helper”的正式发行版。不要用终端移除 quarantine 属性或全局关闭 Gatekeeper；只在已核对来源与 SHA-256 后，通过系统设置为这一个 app 创建“仍要打开”例外。
 
 ## 正式 Helper 发行的维护者签名与公证流程
 
@@ -142,7 +142,7 @@ app 与 Helper 在 XPC 双向使用代码签名要求：daemon 只接受指定 a
 ## 已知限制
 
 - 仅支持 macOS 13 及以上版本。
-- 从源码构建的 `dist/Governor.app`、免费测试 DMG 和 ZIP 都是 ad-hoc 包，未经 Apple 公证，需要用户手动允许首次打开；它们不能登记 `SMAppService` root Helper。
+- 从源码构建的 `dist/Governor.app`、免费手动安装 DMG 和 ZIP 都是 ad-hoc 包，未经 Apple 公证，需要用户手动允许首次打开；它们不能登记 `SMAppService` root Helper。
 - High Power 只在系统实际报告支持时可选。
 - 亮度恢复目前只覆盖内建屏幕；外接显示器的 DDC/CI 亮度不在首版范围内。
 - 首版没有电池百分比规则、按应用规则、定时计划、通知、学习功能或高级诊断界面。
@@ -159,7 +159,7 @@ Tests/                  核心与服务测试
 Resources/              应用图标
 script/                 构建、测试与发布打包脚本
 VERSION                 版本、构建号和发布标签
-RELEASING.md            测试包与可选公证流程
+RELEASING.md            手动安装包与可选公证流程
 ```
 
 ## 版本

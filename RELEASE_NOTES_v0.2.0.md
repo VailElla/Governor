@@ -1,10 +1,28 @@
-# Governor v0.2.0 — Pre-release
+# Governor v0.2.0 — UNNOTARIZED manual-install pre-release
 
-> This GitHub pre-release currently contains **UNNOTARIZED packaging-test
-> assets only**. They cannot register the privileged Helper and are not a
-> functioning no-repeat-password release. A Developer ID-signed, notarized ZIP
-> can be added to this same pre-release only after its signing and notarization
-> checks succeed.
+> These are **UNNOTARIZED manual-install assets**. They are ad hoc signed and
+> require an explicit, per-Mac Gatekeeper exception after checksum verification.
+> They cannot register the privileged Helper and are not a functioning
+> no-repeat-password release.
+
+## Install the UNNOTARIZED app
+
+1. Download the DMG and its matching `.sha256` file, then verify it before
+   opening anything:
+
+   ```bash
+   shasum -a 256 -c Governor-v0.2.0-UNNOTARIZED-macOS-arm64.dmg.sha256
+   ```
+
+2. Open the DMG and drag `Governor.app` to `Applications`.
+3. Try to open the app once. Then open **System Settings → Privacy & Security**,
+   scroll to **Security**, choose **Open Anyway**, and confirm the next dialog.
+   macOS may ask for the local account password. This creates an exception for
+   this app on this Mac; it is not a Developer ID signature or notarization.
+
+Do not disable Gatekeeper globally or strip a downloaded app's quarantine
+attribute with Terminal commands. Only use the per-app exception after verifying
+the release URL and SHA-256 checksum.
 
 ## SMAppService power helper
 
@@ -14,7 +32,7 @@
 
 ## Asset status
 
-`Governor-v0.2.0-UNNOTARIZED-*` assets are free packaging-test assets. They are ad hoc signed, not notarized, and not Developer ID-trusted. Apple requires a notarized app for an `SMAppService` LaunchDaemon, so these assets cannot register the privileged Helper and must not be represented as a functioning no-repeat-password release. SHA-256 files detect download corruption or change; they do not prove publisher identity.
+`Governor-v0.2.0-UNNOTARIZED-*` assets are free manual-install assets. They are ad hoc signed, not notarized, and not Developer ID-trusted. Apple requires a notarized app for an `SMAppService` LaunchDaemon, so these assets cannot register the privileged Helper and must not be represented as a functioning no-repeat-password release. SHA-256 files detect download corruption or change; they do not prove publisher identity.
 
 ## Test scope
 

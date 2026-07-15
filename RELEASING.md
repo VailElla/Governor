@@ -1,10 +1,10 @@
 # Governor 维护者发布流程
 
-本文件区分两类资产：`UNNOTARIZED` 免费测试包，以及可登记 v0.2.0 `SMAppService` root Helper 的 Developer ID 签名和公证包。应用可以免费分发；但 Apple 明确要求含 LaunchDaemon 的 app 经过公证，故两类资产的功能边界不同。
+本文件区分两类资产：`UNNOTARIZED` 免费手动安装包，以及可登记 v0.2.0 `SMAppService` root Helper 的 Developer ID 签名和公证包。应用可以免费分发；但 Apple 明确要求含 LaunchDaemon 的 app 经过公证，故两类资产的功能边界不同。
 
-## 免费测试包（UNNOTARIZED）
+## 免费手动安装包（UNNOTARIZED）
 
-没有 Apple Developer Program 会员资格时，只能生成明确标记且未经公证的拖动安装 DMG 和备用 ZIP：
+没有 Apple Developer Program 会员资格时，只能生成明确标记且未经公证的拖动安装 DMG 和备用 ZIP。它们可在用户逐个核验并通过系统设置手动允许后打开：
 
 ```bash
 ./script/package_test_release.sh
@@ -19,19 +19,19 @@
 
 DMG 内含 `Governor.app`、指向 `/Applications` 的快捷方式和安全提示。脚本会确认应用保持 ad-hoc 签名、Gatekeeper 不接受该包、Helper 与 `BundleProgram` 布局完整、校验和匹配，并挂载 DMG、重新解压 ZIP 验证内容。
 
-这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。不要把它们作为该功能的可用预发行版发布；它们只能验证免费资产的打包、校验与拖动安装路径。
+这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。不要把它们作为该功能的可用预发行版发布；它们只适合手动安装、校验与非特权 app 路径。
 
 从 MacPower 升级时，发布说明和 DMG 内的说明必须要求用户先退出旧应用并移除 `/Applications/MacPower.app`，再安装 `Governor.app`；不得建议两个应用并存或同时运行。Governor 保留旧 bundle ID 和偏好键以延续配置。
 
 若将这些文件上传到 GitHub Release，发布说明必须明确写出：
 
-> These are UNNOTARIZED test assets. They are ad hoc signed, have not been notarized by Apple, and are not Developer ID-trusted releases. They cannot register Governor's SMAppService privileged helper. macOS will require the user to choose Open Anyway after verifying the download source and SHA-256 checksum.
+> These are UNNOTARIZED manual-install assets. They are ad hoc signed, have not been notarized by Apple, and are not Developer ID-trusted releases. They cannot register Governor's SMAppService privileged helper. After verifying the download source and SHA-256 checksum, users must first try opening the app and then choose Open Anyway in System Settings > Privacy & Security.
 
-不得删除文件名中的 `UNNOTARIZED`，也不得把 SHA-256 描述为发布者身份证明。首次运行需要用户在“系统设置 → 隐私与安全性”中手动选择“仍要打开”；这项本机例外不代表 Apple 公证或 Developer ID 信任。
+不得删除文件名中的 `UNNOTARIZED`，也不得把 SHA-256 描述为发布者身份证明。首次运行需要用户先尝试打开 app，再在“系统设置 → 隐私与安全性”中手动选择“仍要打开”；这项本机例外不代表 Apple 公证或 Developer ID 信任。不要建议用户用终端移除 quarantine 属性或全局关闭 Gatekeeper。
 
 ## 持久 Helper 的必需签名与公证流程
 
-下面的流程与免费测试包相互独立，不能自动降级到 ad-hoc 签名。它是 v0.2.0 持久 Helper 的必要条件：完成后，用户首次从 `/Applications/Governor.app` 启用自动化时在“登录项”批准 daemon 一次，之后锁屏解锁、退出重开应用以及再次启用都不会再出现管理员密码请求。
+下面的流程与免费手动安装包相互独立，不能自动降级到 ad-hoc 签名。它是 v0.2.0 持久 Helper 的必要条件：完成后，用户首次从 `/Applications/Governor.app` 启用自动化时在“登录项”批准 daemon 一次，之后锁屏解锁、退出重开应用以及再次启用都不会再出现管理员密码请求。
 
 ### 前置条件
 

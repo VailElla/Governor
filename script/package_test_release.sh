@@ -133,9 +133,9 @@ mkdir -p "$DMG_STAGING_DIR" "$DMG_MOUNT_DIR"
 /bin/ln -s /Applications "$DMG_STAGING_DIR/Applications"
 
 cat >"$DMG_STAGING_DIR/READ ME - UNNOTARIZED.txt" <<'NOTICE'
-Governor free test build (UNNOTARIZED)
+Governor free manual-install build (UNNOTARIZED)
 
-This test asset is ad hoc signed and has not been notarized by Apple.
+This manual-install asset is ad hoc signed and has not been notarized by Apple.
 It is not a Developer ID-trusted release. Drag Governor.app onto the
 Applications shortcut to install it.
 
@@ -147,8 +147,9 @@ Upgrading from MacPower? Quit it and move MacPower.app to Trash before
 installing Governor.app. Do not keep both apps installed or running.
 
 On first launch, macOS will block the app. Only if you trust the source and
-have verified the published SHA-256 checksum, open System Settings > Privacy
-& Security and choose Open Anyway.
+have verified the published SHA-256 checksum, first try opening the app, then
+open System Settings > Privacy & Security and choose Open Anyway. Do not disable
+Gatekeeper globally or remove the app's quarantine attribute with Terminal.
 NOTICE
 
 /usr/bin/hdiutil create \
@@ -198,10 +199,10 @@ fi
 /usr/bin/hdiutil detach "$DMG_MOUNT_DIR" -quiet
 DMG_MOUNTED=0
 
-echo "Created UNNOTARIZED test archive: $ARCHIVE_PATH"
+echo "Created UNNOTARIZED manual-install archive: $ARCHIVE_PATH"
 echo "SHA-256 checksum: $CHECKSUM_PATH"
 echo "Created drag-to-install DMG: $DMG_PATH"
 echo "DMG SHA-256 checksum: $DMG_CHECKSUM_PATH"
 echo "Architectures: $BINARY_ARCHITECTURES"
-echo "WARNING: These test artifacts are ad hoc signed, are not notarized by Apple, and will trigger Gatekeeper."
+echo "WARNING: These manual-install artifacts are ad hoc signed, are not notarized by Apple, and will trigger Gatekeeper."
 echo "Gatekeeper preflight result: $GATEKEEPER_OUTPUT"
