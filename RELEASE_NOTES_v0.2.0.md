@@ -1,5 +1,11 @@
 # Governor v0.2.0 — Pre-release
 
+> This GitHub pre-release currently contains **UNNOTARIZED packaging-test
+> assets only**. They cannot register the privileged Helper and are not a
+> functioning no-repeat-password release. A Developer ID-signed, notarized ZIP
+> can be added to this same pre-release only after its signing and notarization
+> checks succeed.
+
 ## SMAppService power helper
 
 - Replaces the deprecated in-process privileged executor with a bundled `SMAppService` LaunchDaemon.
