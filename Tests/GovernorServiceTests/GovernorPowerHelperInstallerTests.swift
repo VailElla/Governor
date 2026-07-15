@@ -71,6 +71,24 @@ struct GovernorPowerHelperInstallerTests {
         }
         #expect(service.registerCount == 0)
     }
+
+    @Test
+    @MainActor
+    func unnotarizedBuildFailsClosedWithoutOpeningARegistrationPath() {
+        let service = FakeGovernorPowerHelperService(
+            status: .notRegistered,
+            statusAfterRegister: .requiresApproval
+        )
+        let installer = GovernorPowerHelperInstaller(
+            service: service,
+            supportsPersistentHelper: false
+        )
+
+        #expect(throws: GovernorPowerHelperInstallationError.unavailableInCurrentBuild) {
+            try installer.ensureAvailable()
+        }
+        #expect(service.registerCount == 0)
+    }
 }
 
 @MainActor

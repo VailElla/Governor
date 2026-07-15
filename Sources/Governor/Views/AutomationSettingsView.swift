@@ -25,6 +25,7 @@ struct AutomationSettingsView: View {
 
             Section(AppText.automationStatus(language)) {
                 Toggle(AppText.enableAutomation(language), isOn: automationBinding)
+                    .disabled(model.persistentHelperUnavailableInCurrentBuild)
                 LabeledContent(AppText.currentStatus(language)) {
                     Text(model.automationStatusText)
                         .foregroundStyle(.secondary)
@@ -33,7 +34,11 @@ struct AutomationSettingsView: View {
                     Text(model.actualModeText)
                         .foregroundStyle(.secondary)
                 }
-                if model.requiresHelperApproval {
+                if model.persistentHelperUnavailableInCurrentBuild {
+                    Text(AppText.unnotarizedHelperUnavailable(language))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if model.requiresHelperApproval {
                     Text(AppText.helperApprovalRequired(language))
                         .font(.caption)
                         .foregroundStyle(.secondary)

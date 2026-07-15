@@ -61,6 +61,11 @@ if [[ ! -d "$APP_BUNDLE" ]]; then
   echo "Archive must contain Governor.app at its top level." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported raw \
+  "$APP_BUNDLE/Contents/Info.plist")" != "true" ]]; then
+  echo "Release archive does not declare persistent Helper registration support." >&2
+  exit 1
+fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 SIGNING_DETAILS="$(/usr/bin/codesign -dvv "$APP_BUNDLE" 2>&1)"

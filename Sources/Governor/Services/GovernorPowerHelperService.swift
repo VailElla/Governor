@@ -11,8 +11,20 @@ enum GovernorPowerHelperServiceStatus: Equatable, Sendable {
 
 enum GovernorPowerHelperInstallationError: Error, Equatable, Sendable {
     case requiresApproval
+    case unavailableInCurrentBuild
     case helperNotFound
     case registrationFailed
+}
+
+/// The ad-hoc package exists only for manual app installation. Apple does not
+/// permit it to register the bundled root LaunchDaemon, so do not send users to
+/// Login Items for a helper that can never appear there.
+private enum GovernorPowerHelperBuildCapability {
+    static let registrationSupportedInfoKey = "GovernorPersistentHelperRegistrationSupported"
+
+    static var currentBundleSupportsPersistentHelper: Bool {
+        Bundle.main.object(forInfoDictionaryKey: registrationSupportedInfoKey) as? Bool == true
+    }
 }
 
 @MainActor
@@ -50,20 +62,36 @@ private final class SystemGovernorPowerHelperService: GovernorPowerHelperService
 @MainActor
 final class GovernorPowerHelperInstaller: GovernorPowerHelperServiceManaging {
     private let service: any GovernorPowerHelperServiceManaging
+    private let supportsPersistentHelper: Bool
 
-    static let system = GovernorPowerHelperInstaller(service: SystemGovernorPowerHelperService())
+    static let system = GovernorPowerHelperInstaller(
+        service: SystemGovernorPowerHelperService(),
+        supportsPersistentHelper: GovernorPowerHelperBuildCapability.currentBundleSupportsPersistentHelper
+    )
 
-    init(service: any GovernorPowerHelperServiceManaging) {
+    init(
+        service: any GovernorPowerHelperServiceManaging,
+        supportsPersistentHelper: Bool = true
+    ) {
         self.service = service
+        self.supportsPersistentHelper = supportsPersistentHelper
     }
 
     var status: GovernorPowerHelperServiceStatus { service.status }
+
+    static var currentBuildSupportsPersistentHelper: Bool {
+        GovernorPowerHelperBuildCapability.currentBundleSupportsPersistentHelper
+    }
 
     func register() throws {
         try service.register()
     }
 
     func ensureAvailable() throws {
+        guard supportsPersistentHelper else {
+            throw GovernorPowerHelperInstallationError.unavailableInCurrentBuild
+        }
+
         switch service.status {
         case .enabled:
             return

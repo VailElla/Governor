@@ -1,5 +1,6 @@
 public enum PowerSystemClientFailure: Error, Equatable, Sendable {
     case permissionDenied
+    case persistentHelperUnavailable
     case readFailed
     case requestFailed
 }

@@ -25,6 +25,8 @@ public actor PMSetPowerSystemClient: PowerSystemClient {
     public func authorize() async throws {
         do {
             try await GovernorPowerHelperInstaller.system.ensureAvailable()
+        } catch GovernorPowerHelperInstallationError.unavailableInCurrentBuild {
+            throw PowerSystemClientFailure.persistentHelperUnavailable
         } catch {
             throw PowerSystemClientFailure.permissionDenied
         }

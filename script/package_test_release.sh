@@ -49,6 +49,11 @@ if [[ "$ACTUAL_VERSION" != "$GOVERNOR_VERSION" ]]; then
   echo "Bundle version mismatch: expected $GOVERNOR_VERSION, found $ACTUAL_VERSION" >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported raw \
+  "$APP_BUNDLE/Contents/Info.plist")" != "false" ]]; then
+  echo "UNNOTARIZED bundle must disable persistent Helper registration." >&2
+  exit 1
+fi
 
 BINARY_ARCHITECTURES="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/Governor")"
 ARCHITECTURE_LABEL="$(printf '%s' "$BINARY_ARCHITECTURES" | /usr/bin/tr ' ' '-')"
@@ -118,6 +123,11 @@ if [[ ! -d "$EXTRACTED_APP" ]]; then
   echo "Archive must contain Governor.app at its top level." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported raw \
+  "$EXTRACTED_APP/Contents/Info.plist")" != "false" ]]; then
+  echo "Extracted UNNOTARIZED app must disable persistent Helper registration." >&2
+  exit 1
+fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$EXTRACTED_APP"
 /usr/bin/codesign --verify --strict --verbose=2 \
@@ -142,6 +152,9 @@ Applications shortcut to install it.
 Apple requires an SMAppService LaunchDaemon to be in a notarized app. This
 UNNOTARIZED asset cannot register Governor's root power helper and must not be
 treated as a no-repeat-password release.
+
+Automation is disabled in this package. Governor will not appear in Login
+Items, because macOS cannot register this root helper from an UNNOTARIZED app.
 
 Upgrading from MacPower? Quit it and move MacPower.app to Trash before
 installing Governor.app. Do not keep both apps installed or running.
@@ -176,6 +189,11 @@ DMG_MOUNTED=1
 
 if [[ ! -d "$DMG_MOUNT_DIR/Governor.app" ]]; then
   echo "DMG must contain Governor.app at its top level." >&2
+  exit 1
+fi
+if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported raw \
+  "$DMG_MOUNT_DIR/Governor.app/Contents/Info.plist")" != "false" ]]; then
+  echo "DMG UNNOTARIZED app must disable persistent Helper registration." >&2
   exit 1
 fi
 if [[ ! -L "$DMG_MOUNT_DIR/Applications" ]]; then

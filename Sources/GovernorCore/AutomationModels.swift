@@ -86,6 +86,7 @@ public struct PowerDecision: Equatable, Sendable {
 
 public enum AutomationFailure: Error, Equatable, Sendable {
     case permissionDenied
+    case persistentHelperUnavailable
     case systemReadFailed
     case invalidDecisionInput
     case switchRequestFailed

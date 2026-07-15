@@ -5,6 +5,10 @@
 > They cannot register the privileged Helper and are not a functioning
 > no-repeat-password release.
 
+> **Build 4:** The app disables automation in these assets and explains that
+> Governor will not appear in Login Items. It no longer sends users to approve
+> a Helper that macOS cannot register.
+
 ## Install the UNNOTARIZED app
 
 1. Download the DMG and its matching `.sha256` file, then verify it before

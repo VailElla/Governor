@@ -771,22 +771,43 @@ public actor AutomationCoordinator {
     }
 
     private func permissionFailure(for error: any Error) -> AutomationFailure {
-        if let failure = error as? PowerSystemClientFailure, failure == .readFailed {
-            return .systemReadFailed
+        if let failure = error as? PowerSystemClientFailure {
+            switch failure {
+            case .persistentHelperUnavailable:
+                return .persistentHelperUnavailable
+            case .readFailed:
+                return .systemReadFailed
+            case .permissionDenied, .requestFailed:
+                return .permissionDenied
+            }
         }
         return .permissionDenied
     }
 
     private func readFailure(for error: any Error) -> AutomationFailure {
-        if let failure = error as? PowerSystemClientFailure, failure == .permissionDenied {
-            return .permissionDenied
+        if let failure = error as? PowerSystemClientFailure {
+            switch failure {
+            case .persistentHelperUnavailable:
+                return .persistentHelperUnavailable
+            case .permissionDenied:
+                return .permissionDenied
+            case .readFailed, .requestFailed:
+                return .systemReadFailed
+            }
         }
         return .systemReadFailed
     }
 
     private func requestFailure(for error: any Error) -> AutomationFailure {
-        if let failure = error as? PowerSystemClientFailure, failure == .permissionDenied {
-            return .permissionDenied
+        if let failure = error as? PowerSystemClientFailure {
+            switch failure {
+            case .persistentHelperUnavailable:
+                return .persistentHelperUnavailable
+            case .permissionDenied:
+                return .permissionDenied
+            case .readFailed, .requestFailed:
+                return .switchRequestFailed
+            }
         }
         return .switchRequestFailed
     }

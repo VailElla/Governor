@@ -56,6 +56,12 @@ extension AutomationFailure {
         switch self {
         case .permissionDenied:
             AppText.choose(language, english: "Permission denied", chinese: "权限不足")
+        case .persistentHelperUnavailable:
+            AppText.choose(
+                language,
+                english: "UNNOTARIZED build cannot use the power helper",
+                chinese: "UNNOTARIZED 安装包不能使用电源 Helper"
+            )
         case .systemReadFailed:
             AppText.choose(language, english: "Read failed", chinese: "读取失败")
         case .invalidDecisionInput:

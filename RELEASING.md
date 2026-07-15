@@ -19,7 +19,7 @@
 
 DMG 内含 `Governor.app`、指向 `/Applications` 的快捷方式和安全提示。脚本会确认应用保持 ad-hoc 签名、Gatekeeper 不接受该包、Helper 与 `BundleProgram` 布局完整、校验和匹配，并挂载 DMG、重新解压 ZIP 验证内容。
 
-这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。不要把它们作为该功能的可用预发行版发布；它们只适合手动安装、校验与非特权 app 路径。
+这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。不要把它们作为该功能的可用预发行版发布；它们只适合手动安装、校验与非特权 app 路径。build 4 及以上会禁用自动切换，并明确提示用户不会在“登录项”中看到 Governor，而不是误导用户寻找不存在的批准项。
 
 从 MacPower 升级时，发布说明和 DMG 内的说明必须要求用户先退出旧应用并移除 `/Applications/MacPower.app`，再安装 `Governor.app`；不得建议两个应用并存或同时运行。Governor 保留旧 bundle ID 和偏好键以延续配置。
 

@@ -20,6 +20,23 @@ struct AutomationCoordinatorErrorAndConcurrencyTests {
         #expect(counts.requests == 0)
     }
 
+    @Test func unsupportedPersistentHelperStopsWithoutReadingWritingOrRetrying() async {
+        let client = ScriptedPowerSystemClient(current: makePower(.automatic))
+        await client.setAuthorizationResult(.failure(.persistentHelperUnavailable))
+        let coordinator = AutomationCoordinator(powerSystem: client)
+
+        await coordinator.enableAutomation(activity: makeActivity(cpu: 70, idle: 0))
+        await coordinator.evaluate(activity: makeActivity(cpu: 70, idle: 0))
+
+        let state = await coordinator.snapshot()
+        let counts = await client.counts()
+        #expect(state.status == .errorStopped(.persistentHelperUnavailable))
+        #expect(state.lastError == .persistentHelperUnavailable)
+        #expect(counts.authorizations == 1)
+        #expect(counts.reads == 0)
+        #expect(counts.requests == 0)
+    }
+
     @Test func enableReadFailureStopsWithoutWriting() async {
         let client = ScriptedPowerSystemClient(current: makePower(.automatic))
         await client.enqueueRead(.failure(.readFailed))

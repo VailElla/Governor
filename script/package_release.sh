@@ -62,6 +62,11 @@ if [[ "$ACTUAL_VERSION" != "$GOVERNOR_VERSION" ]]; then
   echo "Bundle version mismatch: expected $GOVERNOR_VERSION, found $ACTUAL_VERSION" >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported raw \
+  "$APP_BUNDLE/Contents/Info.plist")" != "true" ]]; then
+  echo "Distribution bundle must declare persistent Helper registration support." >&2
+  exit 1
+fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 HELPER_BINARY="$APP_BUNDLE/Contents/Resources/$HELPER_EXECUTABLE_NAME"

@@ -120,11 +120,20 @@ final class AppModel: ObservableObject {
         state.currentPower?.highPowerAvailable ?? true
     }
 
-    /// The helper requires a one-time explicit approval in System Settings.
-    /// This flag intentionally reflects a stopped automation transaction rather
-    /// than attempting another registration or authorization interaction.
+    /// An ad-hoc manual-install build cannot register a bundled root
+    /// LaunchDaemon, so it must not present a nonexistent Login Items approval
+    /// path to the user.
+    var persistentHelperUnavailableInCurrentBuild: Bool {
+        !GovernorPowerHelperInstaller.currentBuildSupportsPersistentHelper
+            || state.status == .errorStopped(.persistentHelperUnavailable)
+    }
+
+    /// The helper requires a one-time explicit approval in System Settings only
+    /// after a build that can actually register the daemon has reached the
+    /// `.requiresApproval` state.
     var requiresHelperApproval: Bool {
-        state.status == .errorStopped(.permissionDenied)
+        !persistentHelperUnavailableInCurrentBuild
+            && state.status == .errorStopped(.permissionDenied)
     }
 
     func openHelperApprovalSettings() {

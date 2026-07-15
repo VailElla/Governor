@@ -51,6 +51,14 @@ enum AppText {
         choose(language, english: "Open Login Items Settings", chinese: "打开“登录项”设置")
     }
 
+    static func unnotarizedHelperUnavailable(_ language: AppLanguage) -> String {
+        choose(
+            language,
+            english: "This UNNOTARIZED build can be opened manually, but macOS cannot register its root power helper. Automation is unavailable, so it will not appear in Login Items.",
+            chinese: "当前是 UNNOTARIZED 安装包：可手动打开 app，但 macOS 不能登记它的 root 电源 Helper。自动切换不可用，因此“登录项”中不会出现 Governor。"
+        )
+    }
+
     static func switchAfterInactivity(_ language: AppLanguage) -> String {
         choose(language, english: "Switch after inactivity", chinese: "用户空闲后切换")
     }

@@ -8,10 +8,10 @@
   根据用户空闲时间与最近 15 秒平均 CPU 使用率，自动切换 macOS 电源模式的菜单栏工具。
 </p>
 
-<p align="center"><strong>v0.2.0 · SMAppService power helper · build 3</strong></p>
+<p align="center"><strong>v0.2.0 · SMAppService power helper · build 4</strong></p>
 
 > [!IMPORTANT]
-> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，可在逐个核验来源与 SHA-256 后手动安装。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些手动安装资产**不能**注册 root Helper，也不得被描述为可用的“免重复认证”发行版。
+> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，可在逐个核验来源与 SHA-256 后手动安装。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些手动安装资产**不能**注册 root Helper，也不得被描述为可用的“免重复认证”发行版。build 4 会禁用自动切换并明确说明它不会出现在“登录项”。
 
 ## 功能
 
@@ -164,7 +164,7 @@ RELEASING.md            手动安装包与可选公证流程
 
 ## 版本
 
-- 当前版本：`0.2.0`（build `3`）
+- 当前版本：`0.2.0`（build `4`）
 - 发布标签：`v0.2.0`
 - 版本名称：**SMAppService power helper**
 

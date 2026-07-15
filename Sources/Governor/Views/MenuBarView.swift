@@ -28,8 +28,13 @@ struct MenuBarView: View {
             Divider()
 
             Toggle(AppText.automation(language), isOn: automationBinding)
+                .disabled(model.persistentHelperUnavailableInCurrentBuild)
 
-            if model.requiresHelperApproval {
+            if model.persistentHelperUnavailableInCurrentBuild {
+                Text(AppText.unnotarizedHelperUnavailable(language))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if model.requiresHelperApproval {
                 Button(AppText.openLoginItemsSettings(language)) {
                     model.openHelperApprovalSettings()
                 }
