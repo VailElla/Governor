@@ -54,6 +54,11 @@ if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported 
   echo "UNNOTARIZED bundle must disable persistent Helper registration." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorSessionAuthorizationSupported raw \
+  "$APP_BUNDLE/Contents/Info.plist")" != "true" ]]; then
+  echo "UNNOTARIZED bundle must enable session authorization." >&2
+  exit 1
+fi
 
 BINARY_ARCHITECTURES="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/Governor")"
 ARCHITECTURE_LABEL="$(printf '%s' "$BINARY_ARCHITECTURES" | /usr/bin/tr ' ' '-')"
@@ -128,6 +133,11 @@ if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported 
   echo "Extracted UNNOTARIZED app must disable persistent Helper registration." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorSessionAuthorizationSupported raw \
+  "$EXTRACTED_APP/Contents/Info.plist")" != "true" ]]; then
+  echo "Extracted UNNOTARIZED app must enable session authorization." >&2
+  exit 1
+fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$EXTRACTED_APP"
 /usr/bin/codesign --verify --strict --verbose=2 \
@@ -150,11 +160,16 @@ It is not a Developer ID-trusted release. Drag Governor.app onto the
 Applications shortcut to install it.
 
 Apple requires an SMAppService LaunchDaemon to be in a notarized app. This
-UNNOTARIZED asset cannot register Governor's root power helper and must not be
-treated as a no-repeat-password release.
+UNNOTARIZED asset cannot register Governor's persistent root power helper.
 
-Automation is disabled in this package. Governor will not appear in Login
-Items, because macOS cannot register this root helper from an UNNOTARIZED app.
+Automation is available through a session-only administrator authorization
+bridge. The first time you enable automation after opening Governor, macOS asks
+for administrator authorization. It lasts only while Governor is open; after
+quitting and reopening Governor, enable automation again to authorize a new
+session. Governor will not appear in Login Items.
+
+This compatibility bridge uses a deprecated macOS API and is not a trusted
+Developer ID release. Never disable Gatekeeper globally.
 
 Upgrading from MacPower? Quit it and move MacPower.app to Trash before
 installing Governor.app. Do not keep both apps installed or running.
@@ -196,6 +211,11 @@ if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported 
   echo "DMG UNNOTARIZED app must disable persistent Helper registration." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorSessionAuthorizationSupported raw \
+  "$DMG_MOUNT_DIR/Governor.app/Contents/Info.plist")" != "true" ]]; then
+  echo "DMG UNNOTARIZED app must enable session authorization." >&2
+  exit 1
+fi
 if [[ ! -L "$DMG_MOUNT_DIR/Applications" ]]; then
   echo "DMG must contain a drag-to-install Applications shortcut." >&2
   exit 1
@@ -222,5 +242,5 @@ echo "SHA-256 checksum: $CHECKSUM_PATH"
 echo "Created drag-to-install DMG: $DMG_PATH"
 echo "DMG SHA-256 checksum: $DMG_CHECKSUM_PATH"
 echo "Architectures: $BINARY_ARCHITECTURES"
-echo "WARNING: These manual-install artifacts are ad hoc signed, are not notarized by Apple, and will trigger Gatekeeper."
+echo "WARNING: These manual-install artifacts are ad hoc signed, are not notarized by Apple, and use a per-session administrator authorization bridge for automation."
 echo "Gatekeeper preflight result: $GATEKEEPER_OUTPUT"

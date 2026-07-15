@@ -28,6 +28,7 @@ let package = Package(
             path: "Sources/Governor",
             linkerSettings: [
                 .linkedFramework("ServiceManagement"),
+                .linkedFramework("Security"),
             ]
         ),
         .executableTarget(

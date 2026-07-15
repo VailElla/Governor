@@ -120,19 +120,27 @@ final class AppModel: ObservableObject {
         state.currentPower?.highPowerAvailable ?? true
     }
 
-    /// An ad-hoc manual-install build cannot register a bundled root
-    /// LaunchDaemon, so it must not present a nonexistent Login Items approval
-    /// path to the user.
+    /// Free manual-install builds use an in-memory administrator authorization
+    /// session rather than a daemon that can appear in Login Items.
+    var usesSessionAuthorizationInCurrentBuild: Bool {
+        GovernorPowerHelperInstaller.currentBuildUsesSessionAuthorization
+    }
+
+    /// Preserve a fail-closed UI state if a future build has neither a
+    /// persistent helper nor the session authorization compatibility path.
     var persistentHelperUnavailableInCurrentBuild: Bool {
-        !GovernorPowerHelperInstaller.currentBuildSupportsPersistentHelper
-            || state.status == .errorStopped(.persistentHelperUnavailable)
+        (
+            !usesSessionAuthorizationInCurrentBuild
+                && !GovernorPowerHelperInstaller.currentBuildSupportsPersistentHelper
+        ) || state.status == .errorStopped(.persistentHelperUnavailable)
     }
 
     /// The helper requires a one-time explicit approval in System Settings only
     /// after a build that can actually register the daemon has reached the
     /// `.requiresApproval` state.
     var requiresHelperApproval: Bool {
-        !persistentHelperUnavailableInCurrentBuild
+        !usesSessionAuthorizationInCurrentBuild
+            && !persistentHelperUnavailableInCurrentBuild
             && state.status == .errorStopped(.permissionDenied)
     }
 

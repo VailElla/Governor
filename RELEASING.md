@@ -19,13 +19,13 @@
 
 DMG 内含 `Governor.app`、指向 `/Applications` 的快捷方式和安全提示。脚本会确认应用保持 ad-hoc 签名、Gatekeeper 不接受该包、Helper 与 `BundleProgram` 布局完整、校验和匹配，并挂载 DMG、重新解压 ZIP 验证内容。
 
-这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。不要把它们作为该功能的可用预发行版发布；它们只适合手动安装、校验与非特权 app 路径。build 4 及以上会禁用自动切换，并明确提示用户不会在“登录项”中看到 Governor，而不是误导用户寻找不存在的批准项。
+这些资产不能登记 `SMAppService` LaunchDaemon，因此无法提供 v0.2.0 的持久 root Helper 或“首次批准后不再输密码”能力。build 5 通过会话级管理员授权桥接保留自动切换：用户每次重新打开 Governor 后，首次启用自动切换会请求一次管理员授权；之后在该进程存活期间无需重复输入密码，退出 Governor 后授权失效。它不会出现在“登录项”。该桥接依赖 Apple 已弃用的 API，必须明确标为手动安装兼容方案，不能宣称为 Developer ID 信任或长期兼容的正式特权 Helper 发行版。
 
 从 MacPower 升级时，发布说明和 DMG 内的说明必须要求用户先退出旧应用并移除 `/Applications/MacPower.app`，再安装 `Governor.app`；不得建议两个应用并存或同时运行。Governor 保留旧 bundle ID 和偏好键以延续配置。
 
 若将这些文件上传到 GitHub Release，发布说明必须明确写出：
 
-> These are UNNOTARIZED manual-install assets. They are ad hoc signed, have not been notarized by Apple, and are not Developer ID-trusted releases. They cannot register Governor's SMAppService privileged helper. After verifying the download source and SHA-256 checksum, users must first try opening the app and then choose Open Anyway in System Settings > Privacy & Security.
+> These are UNNOTARIZED manual-install assets. They are ad hoc signed, have not been notarized by Apple, and are not Developer ID-trusted releases. They cannot register Governor's persistent SMAppService privileged helper. Governor requests administrator authorization the first time automation is enabled in each app session; that authorization ends when Governor quits. After verifying the download source and SHA-256 checksum, users must first try opening the app and then choose Open Anyway in System Settings > Privacy & Security.
 
 不得删除文件名中的 `UNNOTARIZED`，也不得把 SHA-256 描述为发布者身份证明。首次运行需要用户先尝试打开 app，再在“系统设置 → 隐私与安全性”中手动选择“仍要打开”；这项本机例外不代表 Apple 公证或 Developer ID 信任。不要建议用户用终端移除 quarantine 属性或全局关闭 Gatekeeper。
 
@@ -73,4 +73,4 @@ SHA-256 仅检测传输损坏或意外变更；它不验证发布者身份。`UN
 
 ## v0.2.0 物理场景测试边界
 
-发布说明必须如实注明：本次验证没有使测试 Mac 睡眠、重启、关机、注销或断网。锁屏解锁、应用退出重开和重启后的 daemon 持久性均由 `SMAppService` 状态机、XPC 代码签名要求和模拟测试覆盖；在拥有公证版并获用户单独批准后，维护者可再进行非破坏性的人工回归，不能把模拟验证写成实机电源生命周期测试。
+发布说明必须如实注明：本次验证没有请求真实管理员授权，也没有使测试 Mac 睡眠、重启、关机、注销或断网。免费包的“每进程首次启用时授权”仅由代码路径、打包标记和模拟测试覆盖；持久 Helper 的锁屏解锁、应用退出重开和重启后 daemon 持久性则由 `SMAppService` 状态机、XPC 代码签名要求和模拟测试覆盖。不能把这些模拟验证写成实机电源生命周期或真实授权交互测试。

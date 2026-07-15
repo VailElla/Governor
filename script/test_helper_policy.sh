@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
 HELPER_SOURCE="$ROOT_DIR/Sources/GovernorPowerHelper/main.swift"
 CONTRACT_SOURCE="$ROOT_DIR/Sources/GovernorHelperSupport/PrivilegedPMSetCommand.swift"
+SESSION_AUTHORIZATION_SOURCE="$ROOT_DIR/Sources/Governor/Services/PMSetSessionAuthorization.swift"
+POWER_CLIENT_SOURCE="$ROOT_DIR/Sources/Governor/Services/PMSetPowerSystemClient.swift"
 DAEMON_PLIST="$ROOT_DIR/Resources/LaunchDaemons/com.ella.Governor.PowerHelper.plist"
 
 assert_contains() {
@@ -32,6 +34,18 @@ assert_no_swift_match() {
   fi
 }
 
+assert_only_swift_match() {
+  local pattern="$1"
+  local expected_file="$2"
+  local matched_files
+  matched_files="$(rg -l --glob '*.swift' -- "$pattern" "$ROOT_DIR/Sources" || true)"
+  if [[ "$matched_files" != "$expected_file" ]]; then
+    echo "Expected $pattern only in $expected_file; found:" >&2
+    printf '%s\n' "$matched_files" >&2
+    exit 1
+  fi
+}
+
 if ! command -v rg >/dev/null 2>&1; then
   echo "ripgrep (rg) is required for privileged-helper policy checks." >&2
   exit 1
@@ -45,10 +59,23 @@ assert_contains "$HELPER_SOURCE" 'process.environment = [:]'
 assert_contains "$HELPER_SOURCE" 'listener.setConnectionCodeSigningRequirement(clientRequirement)'
 assert_not_contains "$HELPER_SOURCE" 'ProcessInfo.processInfo.arguments'
 assert_not_contains "$HELPER_SOURCE" 'ProgramArguments'
-assert_no_swift_match 'AuthorizationExecuteWithPrivileges'
+
+# The free manual-install build uses this deprecated compatibility bridge only
+# for the fixed `pmset` allow-list. It must never spread into generic app code
+# or accept a caller-selected root executable or argument vector.
+assert_contains "$SESSION_AUTHORIZATION_SOURCE" 'PrivilegedPMSetCommand.arguments(for: request)'
+assert_contains "$SESSION_AUTHORIZATION_SOURCE" 'PMSetArguments.executablePath'
+assert_contains "$SESSION_AUTHORIZATION_SOURCE" 'AuthorizationExecuteWithPrivileges'
+assert_contains "$SESSION_AUTHORIZATION_SOURCE" 'AuthorizationFree(reference, [.destroyRights])'
+assert_not_contains "$SESSION_AUTHORIZATION_SOURCE" 'Process()'
+assert_not_contains "$SESSION_AUTHORIZATION_SOURCE" '"/bin/sh"'
+assert_not_contains "$SESSION_AUTHORIZATION_SOURCE" 'sudo'
+assert_contains "$POWER_CLIENT_SOURCE" 'sessionAuthorizationExecutor.execute(request)'
+assert_only_swift_match 'AuthorizationExecuteWithPrivileges' "$SESSION_AUTHORIZATION_SOURCE"
+assert_only_swift_match 'AuthorizationCopyRights' "$SESSION_AUTHORIZATION_SOURCE"
+assert_only_swift_match 'kAuthorizationRightExecute' "$SESSION_AUTHORIZATION_SOURCE"
+
 assert_no_swift_match 'SMJobBless'
-assert_no_swift_match 'AuthorizationCopyRights'
-assert_no_swift_match 'kAuthorizationRightExecute'
 assert_no_swift_match 'sudo'
 assert_no_swift_match '"/bin/sh"'
 

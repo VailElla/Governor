@@ -21,9 +21,14 @@ enum GovernorPowerHelperInstallationError: Error, Equatable, Sendable {
 /// Login Items for a helper that can never appear there.
 private enum GovernorPowerHelperBuildCapability {
     static let registrationSupportedInfoKey = "GovernorPersistentHelperRegistrationSupported"
+    static let sessionAuthorizationSupportedInfoKey = "GovernorSessionAuthorizationSupported"
 
     static var currentBundleSupportsPersistentHelper: Bool {
         Bundle.main.object(forInfoDictionaryKey: registrationSupportedInfoKey) as? Bool == true
+    }
+
+    static var currentBundleUsesSessionAuthorization: Bool {
+        Bundle.main.object(forInfoDictionaryKey: sessionAuthorizationSupportedInfoKey) as? Bool == true
     }
 }
 
@@ -79,8 +84,12 @@ final class GovernorPowerHelperInstaller: GovernorPowerHelperServiceManaging {
 
     var status: GovernorPowerHelperServiceStatus { service.status }
 
-    static var currentBuildSupportsPersistentHelper: Bool {
+    nonisolated static var currentBuildSupportsPersistentHelper: Bool {
         GovernorPowerHelperBuildCapability.currentBundleSupportsPersistentHelper
+    }
+
+    nonisolated static var currentBuildUsesSessionAuthorization: Bool {
+        GovernorPowerHelperBuildCapability.currentBundleUsesSessionAuthorization
     }
 
     func register() throws {

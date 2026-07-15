@@ -71,11 +71,13 @@ APP_HELPER_PLIST="$APP_LAUNCH_DAEMONS/$HELPER_PLIST_NAME"
 SIGNING_IDENTITY="-"
 EXPECTED_TEAM_ID=""
 HELPER_REGISTRATION_SUPPORTED="false"
+SESSION_AUTHORIZATION_SUPPORTED="true"
 
 if [[ "$DISTRIBUTION" -eq 1 ]]; then
   SIGNING_IDENTITY="$(printenv GOVERNOR_SIGNING_IDENTITY || true)"
   EXPECTED_TEAM_ID="$(printenv GOVERNOR_EXPECTED_TEAM_ID || true)"
   HELPER_REGISTRATION_SUPPORTED="true"
+  SESSION_AUTHORIZATION_SUPPORTED="false"
 
   if [[ -z "$SIGNING_IDENTITY" ]]; then
     echo "Distribution builds require GOVERNOR_SIGNING_IDENTITY." >&2
@@ -192,6 +194,8 @@ cat >"$INFO_PLIST" <<PLIST
   <string>$HELPER_SIGNING_IDENTIFIER</string>
   <key>GovernorPersistentHelperRegistrationSupported</key>
   <$HELPER_REGISTRATION_SUPPORTED/>
+  <key>GovernorSessionAuthorizationSupported</key>
+  <$SESSION_AUTHORIZATION_SUPPORTED/>
 </dict>
 </plist>
 PLIST

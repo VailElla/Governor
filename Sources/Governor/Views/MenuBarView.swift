@@ -30,7 +30,11 @@ struct MenuBarView: View {
             Toggle(AppText.automation(language), isOn: automationBinding)
                 .disabled(model.persistentHelperUnavailableInCurrentBuild)
 
-            if model.persistentHelperUnavailableInCurrentBuild {
+            if model.usesSessionAuthorizationInCurrentBuild {
+                Text(AppText.sessionAuthorizationRequired(language))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if model.persistentHelperUnavailableInCurrentBuild {
                 Text(AppText.unnotarizedHelperUnavailable(language))
                     .font(.caption)
                     .foregroundStyle(.secondary)

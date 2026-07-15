@@ -10,19 +10,30 @@ import GovernorHelperSupport
 public actor PMSetPowerSystemClient: PowerSystemClient {
     private let commandRunner: PMSetCommandRunner
     private let helperClient: PMSetHelperClient
+    private let sessionAuthorizationExecutor: SessionAuthorizationExecutor
+    private let usesSessionAuthorization: Bool
     private var switchInFlight = false
 
     public init() {
         commandRunner = PMSetCommandRunner()
         helperClient = PMSetHelperClient()
+        sessionAuthorizationExecutor = SessionAuthorizationExecutor()
+        usesSessionAuthorization = GovernorPowerHelperInstaller.currentBuildUsesSessionAuthorization
     }
 
-    /// Registers the bundled daemon only when it has never been registered.
-    ///
-    /// Call this only in direct response to enabling automation. Once approved,
-    /// Service Management retains the daemon across app restarts and lock/unlock
-    /// events; timer evaluations and later enables never request a new password.
+    /// In the free manual-install build, this requests administrator approval
+    /// once for the current Governor process. A signed distribution instead
+    /// registers its persistent SMAppService daemon.
     public func authorize() async throws {
+        if usesSessionAuthorization {
+            do {
+                try await sessionAuthorizationExecutor.authorizeOnce()
+                return
+            } catch {
+                throw PowerSystemClientFailure.permissionDenied
+            }
+        }
+
         do {
             try await GovernorPowerHelperInstaller.system.ensureAvailable()
         } catch GovernorPowerHelperInstallationError.unavailableInCurrentBuild {
@@ -77,9 +88,14 @@ public actor PMSetPowerSystemClient: PowerSystemClient {
                 controlStyleRawValue: controlStyle.helperRawValue
             )
             // Validate the same closed allow-list locally before the daemon
-            // repeats that validation at its root boundary.
+            // repeats it at its root boundary. The session path also accepts
+            // only this typed request, never an arbitrary command vector.
             _ = try PrivilegedPMSetCommand.arguments(for: request)
-            try await helperClient.apply(request)
+            if usesSessionAuthorization {
+                try await sessionAuthorizationExecutor.execute(request)
+            } else {
+                try await helperClient.apply(request)
+            }
 
             let confirmed = try await readSnapshotUnmapped()
             guard confirmed.mode == mode else {
@@ -103,11 +119,9 @@ public actor PMSetPowerSystemClient: PowerSystemClient {
         // These reads are intentionally sequential. The capability header is
         // checked against the separately reported live source, rejecting a
         // snapshot if the machine changed power sources during observation.
-        let sourceOutput = try await commandRunner.run(arguments: PMSetArguments.readPowerSource)
-        let liveOutput = try await commandRunner.run(arguments: PMSetArguments.readLive)
-        let capabilitiesOutput = try await commandRunner.run(
-            arguments: PMSetArguments.readCapabilities
-        )
+        let sourceOutput = try await commandRunner.run(.powerSource)
+        let liveOutput = try await commandRunner.run(.liveState)
+        let capabilitiesOutput = try await commandRunner.run(.capabilities)
 
         let source = try PMSetOutputParser.parseCurrentPowerSource(sourceOutput)
         let live = try PMSetOutputParser.parseLiveState(liveOutput)

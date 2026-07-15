@@ -34,7 +34,11 @@ struct AutomationSettingsView: View {
                     Text(model.actualModeText)
                         .foregroundStyle(.secondary)
                 }
-                if model.persistentHelperUnavailableInCurrentBuild {
+                if model.usesSessionAuthorizationInCurrentBuild {
+                    Text(AppText.sessionAuthorizationRequired(language))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if model.persistentHelperUnavailableInCurrentBuild {
                     Text(AppText.unnotarizedHelperUnavailable(language))
                         .font(.caption)
                         .foregroundStyle(.secondary)

@@ -59,8 +59,8 @@ extension AutomationFailure {
         case .persistentHelperUnavailable:
             AppText.choose(
                 language,
-                english: "UNNOTARIZED build cannot use the power helper",
-                chinese: "UNNOTARIZED 安装包不能使用电源 Helper"
+                english: "No supported power authorization path",
+                chinese: "没有可用的电源授权方式"
             )
         case .systemReadFailed:
             AppText.choose(language, english: "Read failed", chinese: "读取失败")

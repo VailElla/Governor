@@ -8,10 +8,10 @@
   根据用户空闲时间与最近 15 秒平均 CPU 使用率，自动切换 macOS 电源模式的菜单栏工具。
 </p>
 
-<p align="center"><strong>v0.2.0 · SMAppService power helper · build 4</strong></p>
+<p align="center"><strong>v0.2.0 · session authorization bridge · build 5</strong></p>
 
 > [!IMPORTANT]
-> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，可在逐个核验来源与 SHA-256 后手动安装。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些手动安装资产**不能**注册 root Helper，也不得被描述为可用的“免重复认证”发行版。build 4 会禁用自动切换并明确说明它不会出现在“登录项”。
+> 由 `script/package_test_release.sh` 生成的 v0.2.0 资产明确标记为 `UNNOTARIZED`，可在逐个核验来源与 SHA-256 后手动安装。它们使用 ad-hoc 签名、未经 Apple 公证，不是 Developer ID 签名或受信任发行包，macOS 首次直接打开时会被 Gatekeeper 阻止。Apple 要求含 `SMAppService` LaunchDaemon 的 app 必须经过公证；因此这些手动安装资产不能注册持久 root Helper。build 5 改为在每个 Governor 进程首次启用自动切换时请求一次管理员授权；关闭应用后授权失效，也不会出现在“登录项”。
 
 ## 功能
 
@@ -25,6 +25,7 @@
 - 可在设置窗口一键恢复规则与选项的默认值，且不改变当前自动化开关状态。
 - 检测到用户在系统设置或其他软件中手动更改模式时，可按设置选择是否暂停自动控制。
 - 关闭自动化或正常退出时，在安全条件满足后恢复接管前模式。
+- 免费手动安装版在每个 Governor 进程首次启用自动切换时请求一次管理员授权；成功后本次运行中的自动切换无需重复输入密码，关闭 Governor 后失效。
 - 正式公证版首次启用时通过 `SMAppService` 登记内建 root Helper；管理员在“登录项”中批准一次后，锁屏解锁、退出重开应用和后续启用均不会再次索要管理员密码。
 
 ## 首版规则
@@ -44,6 +45,7 @@
 - macOS 13 或更高版本
 - 支持系统 `pmset` 电源模式接口的 Mac（High Power 是否可用由系统实时检测）
 - Swift 6.2 或更高版本（从源码构建时）
+- 免费手动安装版启用自动切换时需要本机管理员账号；每次重新打开 Governor 后需再次授权
 - 要启用持久 root Helper，必须使用 Developer ID 签名并经 Apple 公证的 app；管理员只需在首次登记时于“登录项”批准一次
 
 ## 从源码构建
@@ -84,7 +86,7 @@ Governor 是 Swift Package Manager 管理的 SwiftUI 菜单栏应用。运行统
 ./script/run_tests.sh
 ```
 
-测试覆盖决策边界、15 秒 CPU 窗口、手动修改后的可选暂停、失败停止、模式与亮度恢复、并发切换保护、语言持久化、`SMAppService` 首次登记状态机，以及 root Helper 的全部 `pmset` 许可表。系统依赖在测试中由 test doubles 替代；测试没有让本机睡眠、重启、关机、注销或断网，也没有注册或启动真实 root Helper。发行脚本会验证 daemon 的受签名 bundle 布局、DMG/ZIP 解压与挂载、签名和 SHA-256。
+测试覆盖决策边界、15 秒 CPU 窗口、手动修改后的可选暂停、失败停止、模式与亮度恢复、并发切换保护、语言持久化、`SMAppService` 首次登记状态机，以及 root Helper 的全部 `pmset` 许可表。系统依赖在测试中由 test doubles 替代；测试没有请求真实管理员授权、让本机睡眠、重启、关机、注销或断网，也没有注册或启动真实 root Helper。发行脚本会验证 daemon 的受签名 bundle 布局、DMG/ZIP 解压与挂载、签名和 SHA-256。
 
 ## 免费手动安装包（UNNOTARIZED）
 
@@ -94,7 +96,7 @@ Governor 是 Swift Package Manager 管理的 SwiftUI 菜单栏应用。运行统
 ./script/package_test_release.sh
 ```
 
-脚本以 Release 配置构建并应用 ad-hoc 签名，确认 Gatekeeper 不会误把它当作受信任发行版；DMG 内含 `Governor.app`、指向 `/Applications` 的拖动安装快捷方式和安全提示。当前 Apple Silicon 机器上的示例输出为：
+脚本以 Release 配置构建并应用 ad-hoc 签名，确认 Gatekeeper 不会误把它当作受信任发行版；DMG 内含 `Governor.app`、指向 `/Applications` 的拖动安装快捷方式和安全提示。首次启用自动切换时，macOS 会请求管理员授权；授权只在当前 Governor 进程中保留，退出后必须再次授权。当前 Apple Silicon 机器上的示例输出为：
 
 - `release/Governor-v0.2.0-UNNOTARIZED-macOS-arm64.dmg`
 - `release/Governor-v0.2.0-UNNOTARIZED-macOS-arm64.dmg.sha256`
@@ -111,7 +113,7 @@ shasum -a 256 -c Governor-v0.2.0-UNNOTARIZED-macOS-arm64.dmg.sha256
 shasum -a 256 -c Governor-v0.2.0-UNNOTARIZED-macOS.zip.sha256
 ```
 
-SHA-256 只用于发现传输损坏或文件变化，不能证明发布者身份。`UNNOTARIZED` 手动安装包不得被描述为“已签名”“已公证”“Developer ID 可信”“受 Gatekeeper 信任”或“可登记特权 Helper”的正式发行版。不要用终端移除 quarantine 属性或全局关闭 Gatekeeper；只在已核对来源与 SHA-256 后，通过系统设置为这一个 app 创建“仍要打开”例外。
+SHA-256 只用于发现传输损坏或文件变化，不能证明发布者身份。`UNNOTARIZED` 手动安装包不得被描述为“已签名”“已公证”“Developer ID 可信”“受 Gatekeeper 信任”或“可登记特权 Helper”的正式发行版。该会话授权桥接依赖 Apple 已弃用的 API，未来 macOS 版本可能移除它；不要用终端移除 quarantine 属性或全局关闭 Gatekeeper，只在已核对来源与 SHA-256 后，通过系统设置为这一个 app 创建“仍要打开”例外。
 
 ## 正式 Helper 发行的维护者签名与公证流程
 
@@ -133,16 +135,18 @@ SHA-256 文件只用于传输完整性检查，不能证明发布者身份。详
 
 ## 权限与安全边界
 
-Governor 的 app 侧只做只读 `pmset -g` 查询。写入只能经过 `SMAppService` 注册的 root Helper；Helper 仅暴露一个 XPC 方法，输入为电源来源、模式和控制样式的三个整数枚举。它自行生成固定路径 `/usr/bin/pmset` 的三参数许可表、清空子进程环境、没有 shell、路径、环境、命令或任意参数入口；请求和回复均使用 `NSSecureCoding` 白名单。
+Governor 的 app 侧只做固定的只读 `pmset -g` 查询。免费手动安装版在用户明确启用自动切换后，使用会话级管理员授权桥接执行固定路径 `/usr/bin/pmset` 的枚举许可表；它不接受 shell、可执行路径、环境、任意命令或参数，且进程结束时销毁授权。该兼容路径使用 Apple 已弃用的 API，只能作为明确标记的手动安装方案。
+
+Developer ID 签名且已公证的正式版则只能经过 `SMAppService` 注册的 root Helper 写入。Helper 仅暴露一个 XPC 方法，输入为电源来源、模式和控制样式的三个整数枚举；它自行生成固定许可表、清空子进程环境、没有 shell、路径、环境、命令或任意参数入口；请求和回复均使用 `NSSecureCoding` 白名单。
 
 启用亮度恢复时，该功能仅作用于系统内建屏幕，并在本机进程内动态解析 macOS 的 `DisplayServices` 亮度接口；它不需要管理员权限。该接口不可用或显示器不支持时会安全跳过，不影响电源模式切换。
 
-app 与 Helper 在 XPC 双向使用代码签名要求：daemon 只接受指定 app identifier 与 Team ID 的连接，app 只连接指定 Helper identifier 与 Team ID 的 Mach service。首次明确启用时若 daemon 未登记，app 只调用一次 `SMAppService.register()`；需要批准时停止自动化并提供“打开登录项设置”，绝不会在计时器、失败重试、锁屏解锁或应用重开时再次请求管理员密码。
+正式版 app 与 Helper 在 XPC 双向使用代码签名要求：daemon 只接受指定 app identifier 与 Team ID 的连接，app 只连接指定 Helper identifier 与 Team ID 的 Mach service。首次明确启用时若 daemon 未登记，app 只调用一次 `SMAppService.register()`；需要批准时停止自动化并提供“打开登录项设置”，绝不会在计时器、失败重试、锁屏解锁或应用重开时再次请求管理员密码。
 
 ## 已知限制
 
 - 仅支持 macOS 13 及以上版本。
-- 从源码构建的 `dist/Governor.app`、免费手动安装 DMG 和 ZIP 都是 ad-hoc 包，未经 Apple 公证，需要用户手动允许首次打开；它们不能登记 `SMAppService` root Helper。
+- 从源码构建的 `dist/Governor.app`、免费手动安装 DMG 和 ZIP 都是 ad-hoc 包，未经 Apple 公证，需要用户手动允许首次打开；它们不能登记 `SMAppService` root Helper，但可以在每个进程首次启用自动切换时请求管理员授权。
 - High Power 只在系统实际报告支持时可选。
 - 亮度恢复目前只覆盖内建屏幕；外接显示器的 DDC/CI 亮度不在首版范围内。
 - 首版没有电池百分比规则、按应用规则、定时计划、通知、学习功能或高级诊断界面。
@@ -164,9 +168,9 @@ RELEASING.md            手动安装包与可选公证流程
 
 ## 版本
 
-- 当前版本：`0.2.0`（build `4`）
+- 当前版本：`0.2.0`（build `5`）
 - 发布标签：`v0.2.0`
-- 版本名称：**SMAppService power helper**
+- 版本名称：**Session authorization bridge**
 
 ## 开源许可
 

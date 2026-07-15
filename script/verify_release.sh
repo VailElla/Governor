@@ -66,6 +66,11 @@ if [[ "$(/usr/bin/plutil -extract GovernorPersistentHelperRegistrationSupported 
   echo "Release archive does not declare persistent Helper registration support." >&2
   exit 1
 fi
+if [[ "$(/usr/bin/plutil -extract GovernorSessionAuthorizationSupported raw \
+  "$APP_BUNDLE/Contents/Info.plist")" != "false" ]]; then
+  echo "Release archive must disable the deprecated session authorization bridge." >&2
+  exit 1
+fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 SIGNING_DETAILS="$(/usr/bin/codesign -dvv "$APP_BUNDLE" 2>&1)"

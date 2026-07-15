@@ -54,8 +54,16 @@ enum AppText {
     static func unnotarizedHelperUnavailable(_ language: AppLanguage) -> String {
         choose(
             language,
-            english: "This UNNOTARIZED build can be opened manually, but macOS cannot register its root power helper. Automation is unavailable, so it will not appear in Login Items.",
-            chinese: "当前是 UNNOTARIZED 安装包：可手动打开 app，但 macOS 不能登记它的 root 电源 Helper。自动切换不可用，因此“登录项”中不会出现 Governor。"
+            english: "This build has no usable power authorization path.",
+            chinese: "当前安装包没有可用的电源授权方式。"
+        )
+    }
+
+    static func sessionAuthorizationRequired(_ language: AppLanguage) -> String {
+        choose(
+            language,
+            english: "This manual-install build asks for administrator authorization once when you enable automation. It expires when Governor quits and does not appear in Login Items.",
+            chinese: "当前手动安装包会在启用自动切换时请求一次管理员授权；关闭 Governor 后授权失效，下次重新打开需再次授权，也不会出现在“登录项”。"
         )
     }
 

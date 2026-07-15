@@ -1,14 +1,32 @@
 import Foundation
 
+/// The three non-privileged `pmset` reads Governor needs to observe the
+/// current system state. Keeping this as a closed enum prevents the normal
+/// process runner from becoming a generic command launcher.
+enum PMSetReadCommand: Sendable {
+    case powerSource
+    case liveState
+    case capabilities
+
+    var arguments: [String] {
+        switch self {
+        case .powerSource: PMSetArguments.readPowerSource
+        case .liveState: PMSetArguments.readLive
+        case .capabilities: PMSetArguments.readCapabilities
+        }
+    }
+}
+
 struct PMSetCommandRunner: Sendable {
-    func run(arguments: [String]) async throws -> String {
+    func run(_ command: PMSetReadCommand) async throws -> String {
         try await Task.detached(priority: .utility) {
             let process = Process()
             let outputPipe = Pipe()
             process.executableURL = URL(fileURLWithPath: PMSetArguments.executablePath)
-            process.arguments = arguments
+            process.arguments = command.arguments
             process.standardOutput = outputPipe
             process.standardError = outputPipe
+            process.environment = [:]
 
             do {
                 try process.run()
