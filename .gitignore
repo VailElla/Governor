@@ -1,0 +1,7 @@
+.DS_Store
+.build/
+.swiftpm/
+.codex/
+dist/
+release/
+.release-staging.*
