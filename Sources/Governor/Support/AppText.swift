@@ -15,14 +15,6 @@ enum AppText {
         choose(language, english: "Language", chinese: "语言")
     }
 
-    static func languageHelp(_ language: AppLanguage) -> String {
-        choose(
-            language,
-            english: "English is the default. Chinese is selected automatically when the primary system language is Chinese.",
-            chinese: "默认使用英文；当系统首选语言为中文时，首次会自动使用中文。"
-        )
-    }
-
     static func automationStatus(_ language: AppLanguage) -> String {
         choose(language, english: "Automation status", chinese: "自动切换状态")
     }
@@ -307,14 +299,22 @@ enum AppText {
     }
 
     static func releaseName(_ identifier: String, language: AppLanguage) -> String {
-        guard ["language-settings", "Language preference and rebrand"].contains(identifier) else {
+        switch identifier {
+        case "language-settings", "Language preference and rebrand":
+            return choose(
+                language,
+                english: "Governor rename and language settings",
+                chinese: "Governor 改名与语言设置"
+            )
+        case "Settings accessibility":
+            return choose(
+                language,
+                english: "Settings accessibility",
+                chinese: "设置可访问性改进"
+            )
+        default:
             return identifier
         }
-        return choose(
-            language,
-            english: "Governor rename and language settings",
-            chinese: "Governor 改名与语言设置"
-        )
     }
 
     static func versionLine(

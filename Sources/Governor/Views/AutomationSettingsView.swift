@@ -3,6 +3,18 @@ import SwiftUI
 
 /// A full settings window keeps the menu-bar popover focused on status and the
 /// main switch, while presenting the automation rule as a short, readable flow.
+struct AutomationSettingsWindowContent: View {
+    @ObservedObject var model: AppModel
+
+    var body: some View {
+        ScrollView(.vertical) {
+            AutomationSettingsView(model: model)
+                .frame(minWidth: 500, maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(minWidth: 500)
+    }
+}
+
 struct AutomationSettingsView: View {
     @ObservedObject var model: AppModel
     @ObservedObject private var languageSettings = LanguageSettings.shared
@@ -18,9 +30,6 @@ struct AutomationSettingsView: View {
                         Text(option.selectionTitle).tag(option)
                     }
                 }
-                Text(AppText.languageHelp(language))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section(AppText.automationStatus(language)) {
@@ -52,7 +61,7 @@ struct AutomationSettingsView: View {
                 }
             }
 
-            Section(AppText.switchAfterInactivity(language)) {
+            Section {
                 HStack {
                     Text(AppText.afterNoInputFor(language))
                     Spacer()
@@ -81,13 +90,6 @@ struct AutomationSettingsView: View {
                     .accessibilityLabel(AppText.idleTimeUnit(language))
                 }
 
-                Text(AppText.idleExplanation(
-                    duration: idleDurationDescription,
-                    language: language
-                ))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
                 powerModePicker(
                     title: AppText.thenSwitchTo(language),
                     selection: idlePowerModeBinding
@@ -99,9 +101,17 @@ struct AutomationSettingsView: View {
                     unit: idlePollingIntervalUnitBinding,
                     units: PollingIntervalUnit.idleOptions
                 )
+            } header: {
+                settingsSectionHeader(
+                    AppText.switchAfterInactivity(language),
+                    helpText: AppText.idleExplanation(
+                        duration: idleDurationDescription,
+                        language: language
+                    )
+                )
             }
 
-            Section(AppText.active(language)) {
+            Section {
                 powerModePicker(
                     title: AppText.usePowerMode(language),
                     selection: activePowerModeBinding
@@ -113,10 +123,11 @@ struct AutomationSettingsView: View {
                     unit: activePollingIntervalUnitBinding,
                     units: PollingIntervalUnit.activeOptions
                 )
-
-                Text(AppText.pollingIntervalHelp(language))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            } header: {
+                settingsSectionHeader(
+                    AppText.active(language),
+                    helpText: AppText.pollingIntervalHelp(language)
+                )
             }
 
             Section(AppText.idleProtection(language)) {
@@ -140,7 +151,7 @@ struct AutomationSettingsView: View {
                 )
                 .accessibilityHint(AppText.restoreBrightnessHint(language))
 
-                LabeledContent(AppText.waitBeforeRestoring(language)) {
+                LabeledContent {
                     HStack(spacing: 6) {
                         TextField(
                             AppText.waitTime(language),
@@ -163,22 +174,22 @@ struct AutomationSettingsView: View {
                         Text(PollingIntervalUnit.milliseconds.displayText(in: language))
                             .foregroundStyle(.secondary)
                     }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(AppText.waitBeforeRestoring(language))
+                        settingsInfoIcon(AppText.brightnessDelayHelp(language))
+                    }
                 }
                 .disabled(!model.restoreBrightnessAfterLowPower)
-
-                Text(AppText.brightnessDelayHelp(language))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section(AppText.settingsManagement(language)) {
-                Button(AppText.restoreDefaults(language)) {
-                    isShowingResetConfirmation = true
+                HStack(spacing: 4) {
+                    Button(AppText.restoreDefaults(language)) {
+                        isShowingResetConfirmation = true
+                    }
+                    settingsInfoIcon(AppText.restoreDefaultsHelp(language))
                 }
-
-                Text(AppText.restoreDefaultsHelp(language))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             if !model.isHighPowerCurrentlyAvailable {
@@ -189,7 +200,7 @@ struct AutomationSettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .frame(width: 500)
+        .frame(minWidth: 500, maxWidth: .infinity, alignment: .leading)
         .confirmationDialog(
             AppText.restoreDefaultsConfirmation(language),
             isPresented: $isShowingResetConfirmation,
@@ -209,6 +220,26 @@ struct AutomationSettingsView: View {
             get: { model.isAutomationEnabled },
             set: { model.setAutomationEnabled($0) }
         )
+    }
+
+    private func settingsSectionHeader(
+        _ title: String,
+        helpText: String
+    ) -> some View {
+        HStack(spacing: 4) {
+            Text(title)
+            settingsInfoIcon(helpText)
+        }
+    }
+
+    private func settingsInfoIcon(_ helpText: String) -> some View {
+        Image(systemName: "info.circle")
+            .imageScale(.small)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 2)
+            .contentShape(Rectangle())
+            .help(helpText)
+            .accessibilityLabel(helpText)
     }
 
     private var languageBinding: Binding<AppLanguage> {
